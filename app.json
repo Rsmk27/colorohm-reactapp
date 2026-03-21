@@ -30,6 +30,13 @@
     "scheme": "colorohm",
     "plugins": [
       "expo-router"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "ab4eae6e-e5be-40a4-8831-c47f375bc2a6"
+      }
+    },
+    "owner": "rsmk27s-organization"
   }
 }

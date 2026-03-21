@@ -1,3 +1,1 @@
-export default function App() {
-  return null;
-}
+import 'expo-router/entry';
