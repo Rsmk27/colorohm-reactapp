@@ -1,71 +1,58 @@
-# ColorOhm Mobile (Expo + React Native)
+# ColorOhm
 
-ColorOhm is a dark-themed resistor color code calculator for Android/iOS built with Expo, TypeScript, NativeWind, Reanimated, and Expo Router.
+ColorOhm is a pocket resistor color-code app for electronics students, hobbyists, and makers.
 
-## Features
+It helps you:
 
-- Decode: resistor band colors to resistance value
-- Encode: resistance value to resistor bands (4/5 band)
-- Full reference chart (digit, multiplier, tolerance, ppm)
-- Sticky reference table header row
-- Haptics on key interactions
-- Animated resistor visual and band transitions
-- Copy and share results
+- Decode resistor bands into resistance values instantly
+- Encode resistance values back into 3/4/5/6-band resistor colors
+- Use a full color reference chart with digit, multiplier, tolerance, and PPM
 
-## Tech Stack
+## App Workflow
 
-- Expo SDK 51+
-- React Native + TypeScript
-- Expo Router
-- NativeWind (Tailwind for RN)
-- Reanimated + Gesture Handler
-- @gorhom/bottom-sheet
+### 1) Decode
 
-## Setup
+Open Decode tab and choose band count (3, 4, 5, or 6).
 
-```bash
-npm install
-npx expo start
-```
+Select each band color and ColorOhm calculates:
 
-Run on device/emulator:
+- Exact resistance value
+- Tolerance
+- Min and max range
 
-- Android: press a in Expo CLI or run npm run android
-- iOS: run npm run ios (macOS required for simulator)
+You can then copy the computed value with one tap.
 
-## Tests
+### 2) Encode
 
-```bash
-npm run test
-```
+Open Encode tab and type a resistance value (Omega, kOmega, or MOmega).
 
-The test suite validates:
+Then choose:
 
-- Decode logic in utils/resistorCalc.ts
-- Encode logic in utils/encodeResistor.ts
-- Resistance formatting in utils/formatResistance.ts
+- Band count
+- Tolerance (and temperature coefficient for 6-band)
 
-## Branding Assets
+ColorOhm finds matching resistor band colors and renders a visual resistor preview.
 
-Branded assets are generated in assets/ using the script below:
+### 3) Reference
 
-```bash
-node scripts/generate-assets.mjs
-```
+Open Reference tab for the resistor color chart and mnemonic helper.
 
-This writes icon, splash image, adaptive icon layers, and favicon in the dark + amber ColorOhm visual style.
+It includes:
 
-## Structure
+- Digit values
+- Multipliers
+- Tolerance values
+- Temperature coefficient values (PPM)
 
-- app/(tabs)/decode.tsx: Color -> Value calculator
-- app/(tabs)/encode.tsx: Value -> Color encoder
-- app/(tabs)/reference.tsx: Color chart and reading guide
-- app/(tabs)/about.tsx: About and links
-- components/: shared UI components
-- constants/: theme and resistor band metadata
-- utils/: decode/encode/format logic
-- tests/: unit tests for core calculations
+### 4) About
 
-## Branding Notes
+Open About tab to see app details, version info, project context, and creator profile.
 
-The app is hard-locked to dark mode and uses ColorOhm amber accent styling for cards, actions, and highlights.
+## Screenshots (Real App Screens)
+
+<p align="center">
+	<img src="docs/screenshots/decode.webp" alt="Decode Screen" width="24%" />
+	<img src="docs/screenshots/encode.webp" alt="Encode Screen" width="24%" />
+	<img src="docs/screenshots/reference.webp" alt="Reference Screen" width="24%" />
+	<img src="docs/screenshots/about.webp" alt="About Screen" width="24%" />
+</p>
