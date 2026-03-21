@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AppBrandHeader } from '../../components/AppBrandHeader';
 import { bandColors, BandColorKey } from '../../constants/bandData';
 
 const ORDER: BandColorKey[] = [
@@ -58,10 +59,7 @@ export default function ReferenceScreen() {
   return (
     <SafeAreaView className="flex-1 bg-bg">
       <ScrollView contentContainerStyle={{ padding: 16, gap: 16 }} stickyHeaderIndices={[1]}>
-        <View>
-          <Text className="text-2xl font-bold text-neutral-100">Reference</Text>
-          <Text className="text-neutral-400">Resistor color code quick chart</Text>
-        </View>
+        <AppBrandHeader subtitle="Color chart, mnemonics, and practical resistor reading tips." />
 
         <View className="rounded-2xl border border-neutral-800 bg-neutral-950 p-2">
           <View className="flex-row border-b border-neutral-700 bg-neutral-900 pb-2 pt-2">

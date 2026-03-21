@@ -18,8 +18,9 @@ const E96_BASE = [
 
 type EncodeOptions = {
   ohms: number;
-  bandCount: 4 | 5;
+  bandCount: 3 | 4 | 5 | 6;
   tolerance: number;
+  ppm?: number | null;
 };
 
 type EncodeResult = {
@@ -27,6 +28,8 @@ type EncodeResult = {
   nearest: number;
   exact: boolean;
   series: 'E24' | 'E96';
+  toleranceUsed: number;
+  ppmUsed: number | null;
 };
 
 function closestPreferred(ohms: number, series: 'E24' | 'E96'): number {
@@ -68,17 +71,34 @@ function colorByTolerance(tolerance: number): BandColorKey | null {
   ).find((name) => bandColors[name].tolerance === tolerance) ?? null;
 }
 
+function colorByPpm(ppm: number): BandColorKey | null {
+  return (
+    Object.keys(bandColors) as BandColorKey[]
+  ).find((name) => bandColors[name].ppm === ppm) ?? null;
+}
+
+function nearestPpm(ppm: number): number {
+  const supported = [1, 5, 10, 15, 20, 25, 50, 100, 250];
+  return supported.reduce((best, current) => {
+    if (Math.abs(current - ppm) < Math.abs(best - ppm)) {
+      return current;
+    }
+    return best;
+  }, supported[0]);
+}
+
 export function encodeResistor(options: EncodeOptions): EncodeResult | null {
-  const { ohms, bandCount, tolerance } = options;
+  const { ohms, bandCount, tolerance, ppm } = options;
   if (!Number.isFinite(ohms) || ohms <= 0) {
     return null;
   }
 
-  const series = tolerance <= 1 ? 'E96' : 'E24';
+  const toleranceUsed = bandCount === 3 ? 20 : tolerance;
+  const series = toleranceUsed <= 1 ? 'E96' : 'E24';
   const nearest = closestPreferred(ohms, series);
   const exact = Math.abs(nearest - ohms) < 1e-9;
 
-  const sigDigitsCount = bandCount === 4 ? 2 : 3;
+  const sigDigitsCount = bandCount <= 4 ? 2 : 3;
   const exponent = Math.floor(Math.log10(nearest));
   const normalized = nearest / 10 ** exponent;
   const sig = Math.round(normalized * 10 ** (sigDigitsCount - 1));
@@ -98,16 +118,41 @@ export function encodeResistor(options: EncodeOptions): EncodeResult | null {
 
   const digitColors = digits.map(colorByDigit);
   const multiplierColor = colorByMultiplier(multiplier);
-  const toleranceColor = colorByTolerance(tolerance);
+  const toleranceColor = colorByTolerance(toleranceUsed);
+  const ppmUsed = bandCount === 6 ? nearestPpm(ppm ?? (toleranceUsed <= 1 ? 50 : 100)) : null;
+  const ppmColor = ppmUsed === null ? null : colorByPpm(ppmUsed);
 
-  if (!multiplierColor || !toleranceColor || digitColors.some((c) => !c)) {
+  if (!multiplierColor || digitColors.some((c) => !c)) {
     return null;
   }
 
+  if (bandCount === 3) {
+    return {
+      bands: [...digitColors, multiplierColor],
+      nearest,
+      exact,
+      series,
+      toleranceUsed,
+      ppmUsed: null,
+    };
+  }
+
+  if (!toleranceColor) {
+    return null;
+  }
+
+  if (bandCount === 6 && !ppmColor) {
+    return null;
+  }
+
+  const baseBands = [...digitColors, multiplierColor, toleranceColor];
+
   return {
-    bands: [...digitColors, multiplierColor, toleranceColor],
+    bands: bandCount === 6 ? [...baseBands, ppmColor as BandColorKey] : baseBands,
     nearest,
     exact,
     series,
+    toleranceUsed,
+    ppmUsed,
   };
 }

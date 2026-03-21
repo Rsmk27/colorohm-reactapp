@@ -83,6 +83,7 @@ export const ppmColors: BandColorKey[] = [
   'red',
   'orange',
   'yellow',
+  'green',
   'blue',
   'violet',
   'gray',

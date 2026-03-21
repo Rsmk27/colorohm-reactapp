@@ -11,6 +11,7 @@ import { BandSelector } from '../../components/BandSelector';
 import { ColorSwatch } from '../../components/ColorSwatch';
 import { ResistorVisual } from '../../components/ResistorVisual';
 import { ResultCard } from '../../components/ResultCard';
+import { AppBrandHeader } from '../../components/AppBrandHeader';
 import {
   bandOptionsForPosition,
   BandColorKey,
@@ -99,10 +100,7 @@ export default function DecodeScreen() {
   return (
     <SafeAreaView className="flex-1 bg-bg">
       <ScrollView contentContainerStyle={{ padding: 16, gap: 16 }}>
-        <View>
-          <Text className="text-2xl font-bold text-neutral-100">Color Decode</Text>
-          <Text className="text-neutral-400">Resistor colors to resistance value</Text>
-        </View>
+        <AppBrandHeader subtitle="Decode resistor color bands into precise resistance values." />
 
         <BandCountToggle value={bandCount} onChange={onBandCountChange} />
 
