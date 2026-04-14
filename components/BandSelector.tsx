@@ -1,4 +1,5 @@
 import { Pressable, Text, View } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { bandColors, BandColorKey } from '../constants/bandData';
 
@@ -7,9 +8,10 @@ type BandSelectorProps = {
   value: BandColorKey;
   label: string;
   onPress: (index: number) => void;
+  labelDelay?: number;
 };
 
-export function BandSelector({ index, value, label, onPress }: BandSelectorProps) {
+export function BandSelector({ index, value, label, onPress, labelDelay = 0 }: BandSelectorProps) {
   const colorHex = value === 'none' ? 'transparent' : bandColors[value].hex;
 
   return (
@@ -25,7 +27,7 @@ export function BandSelector({ index, value, label, onPress }: BandSelectorProps
           style={{ backgroundColor: colorHex }}
         />
       </Pressable>
-      <Text className="text-xs" style={{ color: '#9CA3AF' }}>{label}</Text>
+      <Animated.Text entering={FadeIn.delay(labelDelay)} className="text-xs" style={{ color: '#9CA3AF' }}>{label}</Animated.Text>
     </View>
   );
 }

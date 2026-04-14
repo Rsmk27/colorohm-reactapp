@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
-import Animated, { FadeIn, FadeOut, Layout, SlideOutRight } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeOut, Layout, SlideOutRight } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
 
@@ -100,11 +100,11 @@ export default function HistoryScreen() {
     );
   };
 
-  const renderItem = ({ item }: { item: HistoryEntry }) => {
+  const renderItem = ({ item, index }: { item: HistoryEntry, index: number }) => {
     const badge = getTypeBadge(item.type);
     return (
       <Animated.View
-        entering={FadeIn.duration(200)}
+        entering={FadeInDown.delay(index * 40)}
         exiting={SlideOutRight.duration(250)}
         layout={Layout.springify()}
       >
@@ -183,11 +183,11 @@ export default function HistoryScreen() {
         <FlatList
           data={flatData}
           keyExtractor={(item, index) => ('_sectionTitle' in item ? `section-${index}` : (item as HistoryEntry).id)}
-          renderItem={({ item }) => {
+          renderItem={({ item, index }) => {
             if ('_sectionTitle' in item) {
               return renderSectionHeader((item as any)._sectionTitle);
             }
-            return renderItem({ item: item as HistoryEntry });
+            return renderItem({ item: item as HistoryEntry, index });
           }}
           contentContainerStyle={{ padding: 16, paddingTop: 0 }}
           showsVerticalScrollIndicator={false}

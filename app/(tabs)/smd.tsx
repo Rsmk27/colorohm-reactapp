@@ -12,10 +12,11 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeInDown, withSpring, withTiming } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 
 import { AppBrandHeader } from '../../components/AppBrandHeader';
+import { StarBurst } from '../../components/StarBurst';
 import { decodeSMD, SMDDecodeResult } from '../../utils/smdDecode';
 import { typography } from '../../constants/theme';
 import { onSuccess, onError, onFavorite } from '../../utils/haptics';
@@ -27,6 +28,18 @@ export default function SMDDecoderScreen() {
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [favEntry, setFavEntry] = useState<FavoriteEntry | null>(null);
+  const [showBurst, setShowBurst] = useState(false);
+
+  const springEntering = () => {
+    'worklet';
+    return {
+      initialValues: { opacity: 0, transform: [{ scale: 0.9 }] },
+      animations: {
+        opacity: withTiming(1, { duration: 300 }),
+        transform: [{ scale: withSpring(1) }],
+      },
+    };
+  };
 
   const handleDecode = async () => {
     Keyboard.dismiss();
@@ -95,6 +108,8 @@ export default function SMDDecoderScreen() {
     } else {
       const entry = await addFavorite({ type: 'smd', input: inputSummary, result: result.formatted });
       setFavEntry(entry);
+      setShowBurst(true);
+      setTimeout(() => setShowBurst(false), 500);
     }
   };
 
@@ -102,7 +117,7 @@ export default function SMDDecoderScreen() {
     if (!result) return;
     try {
       await Share.share({
-        message: `ColorOhm Result\nSMD: ${code.trim()} → ${result.formatted}\n${result.explanation}\nDecoded with ColorOhm by RSMK`,
+        message: `ColorOhm Result\nSMD: ${code.trim()} → ${result.formatted}\n${result.explanation}\nDecoded with ColorOhm by RSMK\nhttps://colorohm.rsmk.me`,
       });
     } catch {
       // user cancelled
@@ -177,7 +192,7 @@ export default function SMDDecoderScreen() {
           {/* Result Card */}
           {result ? (
             <Animated.View
-              entering={FadeInDown.duration(300)}
+              entering={springEntering}
               className="rounded-2xl border border-accent/40 bg-surface p-4"
               style={{
                 shadowColor: '#00D4FF',
@@ -228,13 +243,16 @@ export default function SMDDecoderScreen() {
               {/* Star row */}
               <Pressable
                 onPress={handleToggleFavorite}
-                className="mt-2 flex-row items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-3"
+                className="mt-2 flex-row items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-3 relative"
               >
-                <Ionicons
-                  name={favEntry ? 'star' : 'star-outline'}
-                  size={18}
-                  color={favEntry ? '#FFD700' : '#9CA3AF'}
-                />
+                <View className="relative">
+                  <Ionicons
+                    name={favEntry ? 'star' : 'star-outline'}
+                    size={18}
+                    color={favEntry ? '#FFD700' : '#9CA3AF'}
+                  />
+                  <StarBurst visible={showBurst} />
+                </View>
                 <Text style={{ color: favEntry ? '#FFD700' : '#EAEAEA' }} className="font-semibold">
                   {favEntry ? 'Saved to Favorites' : 'Add to Favorites'}
                 </Text>

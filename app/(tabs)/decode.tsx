@@ -3,9 +3,10 @@ import { Pressable, ScrollView, Share, Text, useWindowDimensions, View } from 'r
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { BottomSheetModal, BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet';
-import Animated, { FadeIn, FadeOut, Layout } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut, FadeInLeft, Layout } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
+import * as Haptics from 'expo-haptics';
 
 import { BandCountToggle } from '../../components/BandCountToggle';
 import { BandSelector } from '../../components/BandSelector';
@@ -13,6 +14,8 @@ import { ColorSwatch } from '../../components/ColorSwatch';
 import { ResistorVisual } from '../../components/ResistorVisual';
 import { ResultCard } from '../../components/ResultCard';
 import { AppBrandHeader } from '../../components/AppBrandHeader';
+import { EasterEggToast } from '../../components/EasterEggToast';
+import { StarBurst } from '../../components/StarBurst';
 import {
   bandOptionsForPosition,
   BandColorKey,
@@ -31,6 +34,9 @@ export default function DecodeScreen() {
   const [selectedBandIndex, setSelectedBandIndex] = useState<number>(0);
   const [toastVisible, setToastVisible] = useState(false);
   const [favEntry, setFavEntry] = useState<FavoriteEntry | null>(null);
+  const [eggState, setEggState] = useState({ visible: false, message: '', color: '' });
+  const [showBurst, setShowBurst] = useState(false);
+  const hideEggTimer = useRef<NodeJS.Timeout | null>(null);
 
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
@@ -89,6 +95,35 @@ export default function DecodeScreen() {
     if (result && resultStr) {
       addHistory({ type: 'color_band', input: inputSummary, result: resultStr });
       isFavorited(inputSummary, resultStr).then(setFavEntry);
+      
+      let doEgg = false;
+      let msg = '';
+      let color = '';
+      if (result.value === 0) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+        msg = "That's just a wire bro \uD83D\uDC80"; color = '#EF4444'; doEgg = true;
+      } else if (result.value === 42) {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+        msg = "The answer to everything \uD83C\uDF0C"; color = '#8B5CF6'; doEgg = true;
+      } else if (result.value === 69) {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+        msg = "Nice. \uD83D\uDE0F"; color = '#10B981'; doEgg = true;
+      } else if (result.value >= 999000000) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+        msg = "Basically open circuit \uD83D\uDC7B"; color = '#9CA3AF'; doEgg = true;
+      }
+
+      if (doEgg) {
+        setEggState({ visible: true, message: msg, color });
+        if (hideEggTimer.current) clearTimeout(hideEggTimer.current);
+        hideEggTimer.current = setTimeout(() => {
+          setEggState(prev => ({ ...prev, visible: false }));
+        }, 2500);
+      } else {
+        setEggState(prev => ({ ...prev, visible: false }));
+      }
+    } else {
+        setEggState(prev => ({ ...prev, visible: false }));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resultStr]);
@@ -138,6 +173,8 @@ export default function DecodeScreen() {
     } else {
       const entry = await addFavorite({ type: 'color_band', input: inputSummary, result: resultStr });
       setFavEntry(entry);
+      setShowBurst(true);
+      setTimeout(() => setShowBurst(false), 500);
     }
   };
 
@@ -145,7 +182,7 @@ export default function DecodeScreen() {
     if (!result || !resultStr) return;
     try {
       await Share.share({
-        message: `ColorOhm Result\n${inputSummary} → ${resultStr}\nDecoded with ColorOhm by RSMK`,
+        message: `ColorOhm Result\n${inputSummary} → ${resultStr}\nDecoded with ColorOhm by RSMK\nhttps://colorohm.rsmk.me`,
       });
     } catch {
       // user cancelled
@@ -157,7 +194,7 @@ export default function DecodeScreen() {
   return (
     <SafeAreaView className="flex-1 bg-bg">
       <ScrollView contentContainerStyle={{ padding: 16, gap: 16 }}>
-        <AppBrandHeader subtitle="Decode resistor color bands into precise resistance values." />
+        <AppBrandHeader subtitle="Decode resistor color bands into precise resistance values." pulseOnMount />
 
         <BandCountToggle value={bandCount} onChange={onBandCountChange} />
 
@@ -170,7 +207,7 @@ export default function DecodeScreen() {
           {activeBands.map((band, index) => (
             <Animated.View
               key={`${index}-${bandCount}`}
-              entering={FadeIn.duration(180)}
+              entering={result ? FadeInLeft.delay(index * 80).duration(180) : FadeInLeft.duration(180)}
               exiting={FadeOut.duration(120)}
               layout={Layout.springify()}
             >
@@ -178,6 +215,7 @@ export default function DecodeScreen() {
                 index={index}
                 value={band}
                 label={BAND_LABELS[index]}
+                labelDelay={bandCount * 80 + 100}
                 onPress={openSheet}
               />
             </Animated.View>
@@ -191,13 +229,16 @@ export default function DecodeScreen() {
           <View className="flex-row gap-2">
             <Pressable
               onPress={handleToggleFavorite}
-              className="flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 py-3"
+              className="flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 py-3 relative"
             >
-              <Ionicons
-                name={favEntry ? 'star' : 'star-outline'}
-                size={18}
-                color={favEntry ? '#FFD700' : '#9CA3AF'}
-              />
+              <View className="relative">
+                <Ionicons
+                  name={favEntry ? 'star' : 'star-outline'}
+                  size={18}
+                  color={favEntry ? '#FFD700' : '#9CA3AF'}
+                />
+                <StarBurst visible={showBurst} />
+              </View>
               <Text style={{ color: favEntry ? '#FFD700' : '#EAEAEA' }} className="font-semibold">
                 {favEntry ? 'Saved' : 'Favorite'}
               </Text>
@@ -218,6 +259,12 @@ export default function DecodeScreen() {
           <Text style={{ color: '#EAEAEA' }}>Copied!</Text>
         </View>
       ) : null}
+
+      <EasterEggToast
+        message={eggState.message}
+        accentColor={eggState.color}
+        visible={eggState.visible}
+      />
 
       <BottomSheetModal
         ref={sheetRef}
