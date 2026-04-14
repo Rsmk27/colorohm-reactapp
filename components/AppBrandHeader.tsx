@@ -1,31 +1,54 @@
-import { Text, View } from 'react-native';
-import Svg, { Circle, Text as SvgText } from 'react-native-svg';
+import { Image, Pressable, Text, View } from 'react-native';
+import { useNavigation, DrawerActions } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 
 type AppBrandHeaderProps = {
   subtitle: string;
 };
 
 export function AppBrandHeader({ subtitle }: AppBrandHeaderProps) {
+  const navigation = useNavigation();
+
+  const openDrawer = () => {
+    navigation.dispatch(DrawerActions.openDrawer());
+  };
+
   return (
-    <View className="rounded-3xl border border-neutral-800 bg-neutral-950 p-4">
+    <View
+      className="rounded-3xl border border-border bg-surface p-4"
+      style={{
+        shadowColor: '#00D4FF',
+        shadowOpacity: 0.08,
+        shadowRadius: 20,
+        shadowOffset: { width: 0, height: 0 },
+        elevation: 4,
+      }}
+    >
       <View className="flex-row items-center gap-3">
-        <View className="h-14 w-14 items-center justify-center rounded-2xl border border-amber-500/40 bg-neutral-900">
-          <Svg width={44} height={44} viewBox="0 0 96 96">
-            <Circle cx={48} cy={48} r={42} fill="#F59E0B" />
-            <Circle cx={48} cy={48} r={29} fill="#111111" />
-            <SvgText x={48} y={55} textAnchor="middle" fill="#F59E0B" fontSize={20} fontWeight="700">
-              Ω
-            </SvgText>
-          </Svg>
+        {/* Hamburger button */}
+        <Pressable
+          onPress={openDrawer}
+          hitSlop={8}
+          className="h-10 w-10 items-center justify-center rounded-xl border border-border bg-card"
+        >
+          <Ionicons name="menu" size={22} color="#EAEAEA" />
+        </Pressable>
+
+        <View className="h-11 w-11 items-center justify-center rounded-xl border border-accent/30 bg-card">
+          <Image
+            source={require('../assets/icon.png')}
+            style={{ width: 34, height: 34 }}
+            resizeMode="contain"
+          />
         </View>
 
         <View className="flex-1">
-          <Text className="text-2xl font-bold text-neutral-100">ColorOhm</Text>
-          <Text className="text-xs uppercase tracking-wider text-amber-400">by RSMK</Text>
+          <Text className="text-xl font-bold" style={{ color: '#EAEAEA' }}>ColorOhm</Text>
+          <Text className="text-xs uppercase tracking-wider text-accent">by RSMK</Text>
         </View>
       </View>
 
-      <Text className="mt-3 text-neutral-400">{subtitle}</Text>
+      <Text className="mt-3" style={{ color: '#9CA3AF' }}>{subtitle}</Text>
     </View>
   );
 }

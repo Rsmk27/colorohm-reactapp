@@ -1,10 +1,11 @@
-import { useMemo, useRef, useState } from 'react';
-import { Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
-import * as Haptics from 'expo-haptics';
-import * as Clipboard from 'expo-clipboard';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { Pressable, ScrollView, Share, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import BottomSheet, { BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet';
+import { useFocusEffect } from 'expo-router';
+import { BottomSheetModal, BottomSheetBackdrop, BottomSheetView } from '@gorhom/bottom-sheet';
 import Animated, { FadeIn, FadeOut, Layout } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 
 import { BandCountToggle } from '../../components/BandCountToggle';
 import { BandSelector } from '../../components/BandSelector';
@@ -19,6 +20,8 @@ import {
 } from '../../constants/bandData';
 import { decodeResistor, BandCount } from '../../utils/resistorCalc';
 import { formatResistance } from '../../utils/formatResistance';
+import { onSuccess, onError, onSelect, onFavorite } from '../../utils/haptics';
+import { addHistory, addFavorite, removeFavorite, isFavorited, FavoriteEntry } from '../../utils/storage';
 
 const BAND_LABELS = ['Digit 1', 'Digit 2', 'Digit 3', 'Multiplier', 'Tolerance', 'PPM'];
 
@@ -27,11 +30,12 @@ export default function DecodeScreen() {
   const [bands, setBands] = useState<BandColorKey[]>(defaultBandsByCount[4]);
   const [selectedBandIndex, setSelectedBandIndex] = useState<number>(0);
   const [toastVisible, setToastVisible] = useState(false);
+  const [favEntry, setFavEntry] = useState<FavoriteEntry | null>(null);
 
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
 
-  const sheetRef = useRef<BottomSheet>(null);
+  const sheetRef = useRef<BottomSheetModal>(null);
 
   const error = useMemo(() => {
     const activeBands = bands.slice(0, bandCount);
@@ -59,9 +63,39 @@ export default function DecodeScreen() {
 
   const activeBands = useMemo(() => bands.slice(0, bandCount), [bands, bandCount]);
 
+  const inputSummary = useMemo(() => {
+    return `${bandCount}-band: ${activeBands.join(', ')}`;
+  }, [activeBands, bandCount]);
+
+  const resultStr = useMemo(() => {
+    if (!result) return '';
+    const tol = result.tolerance !== null ? ` ±${result.tolerance}%` : '';
+    return `${formatResistance(result.value)}${tol}`;
+  }, [result]);
+
+  // Check favorite state when result changes
+  useFocusEffect(
+    useCallback(() => {
+      if (resultStr) {
+        isFavorited(inputSummary, resultStr).then(setFavEntry);
+      } else {
+        setFavEntry(null);
+      }
+    }, [inputSummary, resultStr])
+  );
+
+  // Write to history on successful decode
+  useMemo(() => {
+    if (result && resultStr) {
+      addHistory({ type: 'color_band', input: inputSummary, result: resultStr });
+      isFavorited(inputSummary, resultStr).then(setFavEntry);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resultStr]);
+
   const openSheet = (index: number) => {
     setSelectedBandIndex(index);
-    sheetRef.current?.snapToIndex(0);
+    sheetRef.current?.present();
   };
 
   const onBandCountChange = (next: BandCount) => {
@@ -79,7 +113,7 @@ export default function DecodeScreen() {
   };
 
   const onColorPick = async (color: BandColorKey) => {
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    await onSelect();
     setBands((prev) => {
       const copy = [...prev];
       copy[selectedBandIndex] = color;
@@ -90,9 +124,32 @@ export default function DecodeScreen() {
   const onCopy = async () => {
     if (!result) return;
     await Clipboard.setStringAsync(formatResistance(result.value));
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    await onSuccess();
     setToastVisible(true);
     setTimeout(() => setToastVisible(false), 1300);
+  };
+
+  const handleToggleFavorite = async () => {
+    if (!result || !resultStr) return;
+    await onFavorite();
+    if (favEntry) {
+      await removeFavorite(favEntry.id);
+      setFavEntry(null);
+    } else {
+      const entry = await addFavorite({ type: 'color_band', input: inputSummary, result: resultStr });
+      setFavEntry(entry);
+    }
+  };
+
+  const handleShare = async () => {
+    if (!result || !resultStr) return;
+    try {
+      await Share.share({
+        message: `ColorOhm Result\n${inputSummary} → ${resultStr}\nDecoded with ColorOhm by RSMK`,
+      });
+    } catch {
+      // user cancelled
+    }
   };
 
   const options = bandOptionsForPosition(bandCount, selectedBandIndex);
@@ -128,25 +185,53 @@ export default function DecodeScreen() {
         </Animated.View>
 
         <ResultCard result={result} error={error} onCopy={onCopy} />
+
+        {/* Star + Share row */}
+        {result ? (
+          <View className="flex-row gap-2">
+            <Pressable
+              onPress={handleToggleFavorite}
+              className="flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 py-3"
+            >
+              <Ionicons
+                name={favEntry ? 'star' : 'star-outline'}
+                size={18}
+                color={favEntry ? '#FFD700' : '#9CA3AF'}
+              />
+              <Text style={{ color: favEntry ? '#FFD700' : '#EAEAEA' }} className="font-semibold">
+                {favEntry ? 'Saved' : 'Favorite'}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={handleShare}
+              className="flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 py-3"
+            >
+              <Ionicons name="share-outline" size={18} color="#EAEAEA" />
+              <Text style={{ color: '#EAEAEA' }} className="font-semibold">Share</Text>
+            </Pressable>
+          </View>
+        ) : null}
       </ScrollView>
 
       {toastVisible ? (
-        <View className="absolute bottom-28 self-center rounded-xl bg-neutral-800 px-4 py-2">
-          <Text className="text-neutral-100">Copied!</Text>
+        <View className="absolute bottom-28 self-center rounded-xl bg-surface px-4 py-2">
+          <Text style={{ color: '#EAEAEA' }}>Copied!</Text>
         </View>
       ) : null}
 
-      <BottomSheet
+      <BottomSheetModal
         ref={sheetRef}
-        index={-1}
+        index={0}
         snapPoints={['50%']}
-        backdropComponent={(props) => <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} />}
-        backgroundStyle={{ backgroundColor: '#121212' }}
+        backdropComponent={(props) => (
+          <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} pressBehavior="close" />
+        )}
+        backgroundStyle={{ backgroundColor: '#18181D' }}
         handleIndicatorStyle={{ backgroundColor: '#666' }}
         enablePanDownToClose
       >
         <BottomSheetView style={{ paddingHorizontal: 16, paddingBottom: 24 }}>
-          <Text className="mb-3 text-center text-base font-semibold text-neutral-100">
+          <Text className="mb-3 text-center text-base font-semibold" style={{ color: '#EAEAEA' }}>
             Select {BAND_LABELS[selectedBandIndex]}
           </Text>
           <View className="flex-row flex-wrap justify-center gap-3">
@@ -159,11 +244,11 @@ export default function DecodeScreen() {
               />
             ))}
           </View>
-          <Pressable onPress={() => sheetRef.current?.close()} className="mt-4 rounded-xl bg-neutral-800 px-4 py-3">
-            <Text className="text-center font-semibold text-neutral-100">Done</Text>
+          <Pressable onPress={() => sheetRef.current?.dismiss()} className="mt-4 rounded-xl bg-card px-4 py-3 border border-border">
+            <Text className="text-center font-semibold" style={{ color: '#EAEAEA' }}>Done</Text>
           </Pressable>
         </BottomSheetView>
-      </BottomSheet>
+      </BottomSheetModal>
     </SafeAreaView>
   );
 }

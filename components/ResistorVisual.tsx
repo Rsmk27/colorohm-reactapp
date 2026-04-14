@@ -74,7 +74,7 @@ export function ResistorVisual({ bands, bandCount }: ResistorVisualProps) {
   }, [bandCount]);
 
   return (
-    <View className="w-full items-center rounded-3xl border border-neutral-800 bg-neutral-950 p-4">
+    <View className="w-full items-center rounded-3xl border border-border bg-surface p-4">
       <Svg width="100%" height={190} viewBox="0 0 520 190">
         <Defs>
           <LinearGradient id="leadTone" x1="0" y1="0" x2="1" y2="0">

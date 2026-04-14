@@ -22,8 +22,8 @@ export function ResultCard({ result, error, onCopy }: ResultCardProps) {
 
   if (!result) {
     return (
-      <View className="rounded-2xl border border-neutral-800 bg-neutral-950 p-4">
-        <Text className="text-sm text-neutral-400">Select all bands to calculate</Text>
+      <View className="rounded-2xl border border-border bg-surface p-4">
+        <Text className="text-sm" style={{ color: '#9CA3AF' }}>Select all bands to calculate</Text>
       </View>
     );
   }
@@ -31,36 +31,37 @@ export function ResultCard({ result, error, onCopy }: ResultCardProps) {
   return (
     <Animated.View
       entering={FadeInDown.duration(300)}
-      className="rounded-2xl border border-amber-500/40 bg-neutral-950 p-4"
+      className="rounded-2xl border border-accent/40 bg-surface p-4"
       style={{
-        shadowColor: '#F59E0B',
+        shadowColor: '#00D4FF',
         shadowOpacity: 0.4,
         shadowRadius: 16,
         shadowOffset: { width: 0, height: 0 },
         elevation: 8,
       }}
     >
-      <Text className="text-xs uppercase tracking-widest text-amber-400">Calculated Value</Text>
+      <Text className="text-xs uppercase tracking-widest text-accent">Calculated Value</Text>
       <Text
-        className="mt-2 text-4xl text-neutral-50"
+        className="mt-2 text-4xl"
         style={{
           fontFamily: typography.mono,
+          color: '#EAEAEA',
         }}
       >
         {formatResistance(result.value)}
       </Text>
 
       <View className="mt-4 gap-1">
-        <Text className="text-neutral-300">Tolerance: {result.tolerance === null ? '--' : `±${result.tolerance}%`}</Text>
-        <Text className="text-neutral-300">
+        <Text style={{ color: '#FF9F1C' }}>Tolerance: {result.tolerance === null ? '--' : `±${result.tolerance}%`}</Text>
+        <Text style={{ color: '#EAEAEA' }}>
           Min: {result.min === null ? '--' : formatResistance(result.min)} - Max:{' '}
           {result.max === null ? '--' : formatResistance(result.max)}
         </Text>
-        {result.ppm !== null ? <Text className="text-neutral-300">Temp. Coeff: {result.ppm} ppm/K</Text> : null}
+        {result.ppm !== null ? <Text style={{ color: '#EAEAEA' }}>Temp. Coeff: {result.ppm} ppm/K</Text> : null}
       </View>
 
-      <Pressable onPress={onCopy} className="mt-4 rounded-xl bg-amber-500 px-4 py-3">
-        <Text className="text-center font-semibold text-neutral-950">Copy Value</Text>
+      <Pressable onPress={onCopy} className="mt-4 rounded-xl bg-accent px-4 py-3">
+        <Text className="text-center font-semibold" style={{ color: '#0E0E11' }}>Copy Value</Text>
       </Pressable>
     </Animated.View>
   );

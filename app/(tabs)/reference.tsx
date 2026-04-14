@@ -42,7 +42,7 @@ const GUIDE = [
 function Cell({ text, grow = false }: { text: string; grow?: boolean }) {
   return (
     <View className={`px-2 py-2 ${grow ? 'flex-1' : 'w-16'}`}>
-      <Text className="text-xs text-neutral-300">{text}</Text>
+      <Text className="text-xs" style={{ color: '#EAEAEA' }}>{text}</Text>
     </View>
   );
 }
@@ -61,8 +61,8 @@ export default function ReferenceScreen() {
       <ScrollView contentContainerStyle={{ padding: 16, gap: 16 }} stickyHeaderIndices={[1]}>
         <AppBrandHeader subtitle="Color chart, mnemonics, and practical resistor reading tips." />
 
-        <View className="rounded-2xl border border-neutral-800 bg-neutral-950 p-2">
-          <View className="flex-row border-b border-neutral-700 bg-neutral-900 pb-2 pt-2">
+        <View className="rounded-2xl border border-border bg-surface p-2">
+          <View className="flex-row border-b border-border bg-card pb-2 pt-2">
             <Cell text="Color" grow />
             <Cell text="Digit" />
             <Cell text="Mult" />
@@ -71,21 +71,21 @@ export default function ReferenceScreen() {
           </View>
         </View>
 
-        <View className="rounded-2xl border border-neutral-800 bg-neutral-950 p-3">
+        <View className="rounded-2xl border border-border bg-surface p-3">
           {loading
             ? ORDER.map((_, idx) => (
-                <View key={`skeleton-${idx}`} className="mb-2 h-10 rounded-lg bg-neutral-900" />
+                <View key={`skeleton-${idx}`} className="mb-2 h-10 rounded-lg bg-card" />
               ))
             : ORDER.map((name, idx) => {
                 const item = bandColors[name];
                 return (
                   <View
                     key={name}
-                    className={`mb-1 flex-row items-center rounded-lg ${idx % 2 === 0 ? 'bg-neutral-900/60' : 'bg-neutral-950'}`}
+                    className={`mb-1 flex-row items-center rounded-lg ${idx % 2 === 0 ? 'bg-card/60' : 'bg-surface'}`}
                   >
                     <View className="flex-1 flex-row items-center gap-2 px-2 py-2">
-                      <View className="h-4 w-4 rounded-full border border-neutral-700" style={{ backgroundColor: item.hex }} />
-                      <Text className="capitalize text-xs text-neutral-300">{name}</Text>
+                      <View className="h-4 w-4 rounded-full border border-neutral-600" style={{ backgroundColor: item.hex }} />
+                      <Text className="capitalize text-xs" style={{ color: '#EAEAEA' }}>{name}</Text>
                     </View>
                     <Cell text={item.digit === null ? '-' : String(item.digit)} />
                     <Cell text={item.multiplier === null ? '-' : `x${item.multiplier}`} />
@@ -96,8 +96,8 @@ export default function ReferenceScreen() {
               })}
         </View>
 
-        <View className="rounded-2xl border border-neutral-800 bg-neutral-950 p-4">
-          <Text className="mb-2 text-lg font-semibold text-neutral-100">Mnemonic</Text>
+        <View className="rounded-2xl border border-border bg-surface p-4">
+          <Text className="mb-2 text-lg font-semibold" style={{ color: '#EAEAEA' }}>Mnemonic</Text>
           <View className="flex-row flex-wrap gap-1">
             {[
               ['B', 'black'],
@@ -120,25 +120,25 @@ export default function ReferenceScreen() {
               </View>
             ))}
           </View>
-          <Text className="mt-2 text-neutral-400">B B ROY of Great Britain Very Good Wife</Text>
+          <Text className="mt-2" style={{ color: '#9CA3AF' }}>B B ROY of Great Britain Very Good Wife</Text>
         </View>
 
-        <View className="rounded-2xl border border-neutral-800 bg-neutral-950 p-4">
-          <Text className="mb-2 text-lg font-semibold text-neutral-100">Reading Guide</Text>
+        <View className="rounded-2xl border border-border bg-surface p-4">
+          <Text className="mb-2 text-lg font-semibold" style={{ color: '#EAEAEA' }}>Reading Guide</Text>
           {GUIDE.map((item, index) => {
             const open = openSection === index;
             return (
-              <View key={item.title} className="mb-2 overflow-hidden rounded-xl border border-neutral-800">
+              <View key={item.title} className="mb-2 overflow-hidden rounded-xl border border-border">
                 <Pressable
                   onPress={() => setOpenSection(open ? null : index)}
-                  className="flex-row items-center justify-between bg-neutral-900 px-3 py-3"
+                  className="flex-row items-center justify-between bg-card px-3 py-3"
                 >
-                  <Text className="font-semibold text-neutral-200">{item.title}</Text>
-                  <Text className="text-neutral-400">{open ? '-' : '+'}</Text>
+                  <Text className="font-semibold" style={{ color: '#EAEAEA' }}>{item.title}</Text>
+                  <Text style={{ color: '#6B7280' }}>{open ? '-' : '+'}</Text>
                 </Pressable>
                 {open ? (
-                  <View className="bg-neutral-950 px-3 py-3">
-                    <Text className="text-neutral-300">{item.body}</Text>
+                  <View className="bg-surface px-3 py-3">
+                    <Text style={{ color: '#EAEAEA' }}>{item.body}</Text>
                   </View>
                 ) : null}
               </View>

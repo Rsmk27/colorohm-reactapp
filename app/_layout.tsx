@@ -1,3 +1,4 @@
+import 'react-native-gesture-handler';
 import '../global.css';
 
 import { Stack } from 'expo-router';
@@ -15,7 +16,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <BottomSheetModalProvider>
         <StatusBar style="light" />
-        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#0F0F0F' } }}>
+        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#0E0E11' } }}>
           <Stack.Screen name="(tabs)" />
         </Stack>
       </BottomSheetModalProvider>

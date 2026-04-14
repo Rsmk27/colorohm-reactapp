@@ -11,7 +11,7 @@ type BandCountToggleProps = {
 
 export function BandCountToggle({ value, allowed = [3, 4, 5, 6], onChange }: BandCountToggleProps) {
   return (
-    <View className="flex-row rounded-2xl border border-neutral-800 bg-neutral-950 p-1">
+    <View className="flex-row rounded-2xl border border-border bg-surface p-1">
       {allowed.map((count) => {
         const selected = count === value;
         return (
@@ -25,10 +25,11 @@ export function BandCountToggle({ value, allowed = [3, 4, 5, 6], onChange }: Ban
                 entering={FadeIn.duration(200)}
                 exiting={FadeOut.duration(200)}
                 layout={Layout.springify()}
-                className="absolute inset-0 rounded-xl bg-amber-500/20"
+                className="absolute inset-0 rounded-xl"
+                style={{ backgroundColor: 'rgba(0, 212, 255, 0.15)' }}
               />
             ) : null}
-            <Text className={`text-sm font-semibold ${selected ? 'text-amber-400' : 'text-neutral-400'}`}>
+            <Text className={`text-sm font-semibold ${selected ? 'text-accent' : 'text-neutral-400'}`}>
               {count} Bands
             </Text>
           </Pressable>

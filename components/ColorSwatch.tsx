@@ -17,14 +17,14 @@ export function ColorSwatch({ color, selected, onPress }: ColorSwatchProps) {
       accessibilityRole="button"
       accessibilityLabel={`${color} color swatch`}
       className={`w-20 items-center gap-2 rounded-xl border p-2 ${
-        selected ? 'border-amber-400 bg-neutral-900' : 'border-neutral-800 bg-neutral-950'
+        selected ? 'border-accent bg-card' : 'border-border bg-surface'
       }`}
     >
       <View
-        className="h-10 w-10 rounded-full border border-neutral-700"
+        className="h-10 w-10 rounded-full border border-neutral-600"
         style={{ backgroundColor: color === 'none' ? 'transparent' : hex }}
       />
-      <Text className="text-xs capitalize text-neutral-300">{color}</Text>
+      <Text className="text-xs capitalize" style={{ color: '#EAEAEA' }}>{color}</Text>
     </Pressable>
   );
 }
